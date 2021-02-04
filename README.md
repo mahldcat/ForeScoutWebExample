@@ -7,6 +7,7 @@ While this is using a Microsoft Tech Stack, the actual implementation was create
 
 to run, make sure the machine you are pulling this code from has .net Core 3.1 installed on it, and  from the folder where you cloned this project, issue the command 
 
-dotnet build
-dotnet run --project ./ForeScoutWeb/ForeScoutWeb.csproj
+`dotnet build`
+`dotnet run --project ./ForeScoutWeb/ForeScoutWeb.csproj`
+
 
