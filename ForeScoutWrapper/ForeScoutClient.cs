@@ -2,8 +2,10 @@
 using RestSharp;
 using RestSharp.Authenticators;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 using ForeScoutWrapper.Data;
+using JWTFetch;
 
 namespace ForeScoutWrapper
 {
@@ -20,27 +22,39 @@ namespace ForeScoutWrapper
     //
     public class ForeScoutClient:IForeScoutWrapper
     {
-        private string JWTToken{get;set;}
+        private readonly IJWTTokenFetcher _tokenFetcher;
+        private readonly ILogger<ForeScoutClient> _logger;
         private string OITServerEndPointAddress {get;set;}
         private RestClient client {get;set;}
+
+        public ForeScoutClient(ILogger<ForeScoutClient> logger, IJWTTokenFetcher jwtTokenFetcher){
+
+            _logger=logger;
+            _tokenFetcher=jwtTokenFetcher;
+
+            // In this case I'm just using a placeholder setup that I know will return a blob of JSON
+            // https://api.jsonbin.io/b/601b663ed5aafc6431a3af5a/latest
+
+            string OITServerEndPointAddress = "https://api.jsonbin.io/b";
+            client = new RestClient(OITServerEndPointAddress);
+
+
+        }
 
         public ForeScoutDataObject GetForeScoutDataObjectFromOITSystem(){
             string path="/601b663ed5aafc6431a3af5a/latest";            
             return MakeGetRequestToOITModule<ForeScoutDataObject>(path);
         }
 
-        public ForeScoutClient(){
-            // TODO:not sure what sort of system you have in place to actually get a JWT token?
-            // I'd break this out into a separate class that would handle this element for you...
-            string JWTToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
+        private T MakeGetRequestToOITModule<T>(string path){
 
-            // In this case I'm just using a placeholder setup that I know will return a blob of JSON
-            // https://api.jsonbin.io/b/601b663ed5aafc6431a3af5a/latest
+            var request = new RestRequest(path, DataFormat.Json);
 
-            string OITServerEndPointAddress = "https://api.jsonbin.io/b";
+            string token  = _tokenFetcher.Token;
 
-            client = new RestClient(OITServerEndPointAddress);
+            _logger.LogInformation("JWTToken:{0}",token);
+
             // From my own xperience (e.g. GoDaddy's implementation of JWT), is the location of the JWT token MAY
             // have to placed on the request entity as a header or possibly sent in as a cookie.
             // 
@@ -48,12 +62,8 @@ namespace ForeScoutWrapper
             //
             // uncomment this line to engage the RestSharp built in JWT auth....
             // client.Authenticator= new JwtAuthenticator(JWTToken);
-
-        }
-
-        private T MakeGetRequestToOITModule<T>(string path){
-
-            var request = new RestRequest(path, DataFormat.Json);
+            //
+            
 
             IRestResponse response = client.Get(request);
 

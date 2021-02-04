@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ForeScoutWrapper\ForeScoutWrapper.csproj" />
+    <ProjectReference Include="..\JWTFetch\JWTFetch.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
